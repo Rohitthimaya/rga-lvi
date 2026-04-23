@@ -4,7 +4,11 @@ const nextConfig: NextConfig = {
   async rewrites() {
     // In dev, we proxy to the local Express server.
     // In prod (Vercel), set API_URL to your deployed API origin (e.g. https://rga-lvi-api.fly.dev).
-    const api = process.env.API_URL ?? 'http://localhost:3000';
+    const rawApi = process.env.API_URL ?? 'http://localhost:3000';
+    const api =
+      rawApi.startsWith('http://') || rawApi.startsWith('https://')
+        ? rawApi
+        : `https://${rawApi}`;
     return [
       // Proxy API calls to Express server
       { source: '/upload', destination: `${api}/upload` },
