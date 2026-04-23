@@ -2,16 +2,19 @@ import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   async rewrites() {
+    // In dev, we proxy to the local Express server.
+    // In prod (Vercel), set API_URL to your deployed API origin (e.g. https://rga-lvi-api.fly.dev).
+    const api = process.env.API_URL ?? 'http://localhost:3000';
     return [
       // Proxy API calls to Express server
-      { source: '/upload', destination: 'http://localhost:3000/upload' },
-      { source: '/files', destination: 'http://localhost:3000/files' },
-      { source: '/files/:path*', destination: 'http://localhost:3000/files/:path*' },
-      { source: '/search', destination: 'http://localhost:3000/search' },
-      { source: '/ask', destination: 'http://localhost:3000/ask' },
-      { source: '/feedback', destination: 'http://localhost:3000/feedback' },
-      { source: '/queries', destination: 'http://localhost:3000/queries' },
-      { source: '/health', destination: 'http://localhost:3000/health' }
+      { source: '/upload', destination: `${api}/upload` },
+      { source: '/files', destination: `${api}/files` },
+      { source: '/files/:path*', destination: `${api}/files/:path*` },
+      { source: '/search', destination: `${api}/search` },
+      { source: '/ask', destination: `${api}/ask` },
+      { source: '/feedback', destination: `${api}/feedback` },
+      { source: '/queries', destination: `${api}/queries` },
+      { source: '/health', destination: `${api}/health` },
     ];
   },
 };
