@@ -1,0 +1,20 @@
+app = "rga-lvi-worker"
+primary_region = "yyz"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  NODE_ENV = "production"
+  PORT = "8080"
+
+# No public service for the worker. It just runs the queue processor.
+
+[processes]
+  worker = "node dist/workers/fileWorker.js"
+
+[[vm]]
+  cpu_kind = "shared"
+  cpus = 1
+  memory_mb = 256
+
