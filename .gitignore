@@ -1,0 +1,19 @@
+node_modules/
+dist/
+.env
+.env.local
+uploads/
+*.log
+.DS_Store
+
+# Next.js
+.next/
+out/
+
+# Workspace output
+server/dist/
+
+# Local editor/OS files
+.vscode/
+.idea/
+*.swp

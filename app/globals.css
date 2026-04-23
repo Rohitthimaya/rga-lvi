@@ -1,0 +1,62 @@
+/* Tailwind v4 entrypoint */
+@import "tailwindcss";
+
+:root {
+  /* Neutrals (paper, no pure white/black) */
+  --bg: #faf9f5;
+  --surface: #f6f4ee;
+  --surface-2: #f0eee6;
+  --border: rgba(47, 43, 38, 0.14);
+  --text: #1e1b16;
+  --muted: rgba(30, 27, 22, 0.68);
+  --muted-2: rgba(30, 27, 22, 0.46);
+
+  /* Single accent (interactive only) */
+  --accent: #c96442;
+  --accent-hover: #b95838;
+  --accent-soft: rgba(201, 100, 66, 0.14);
+  --focus-ring: rgba(201, 100, 66, 0.22);
+
+  /* Citations (readable, not accent) */
+  --cite-bg: rgba(47, 43, 38, 0.06);
+  --cite-border: rgba(47, 43, 38, 0.12);
+
+  /* Shadow (very subtle) */
+  --shadow: 0 1px 0 rgba(30, 27, 22, 0.04), 0 16px 42px rgba(30, 27, 22, 0.07);
+}
+
+[data-theme="dark"] {
+  /* Dark paper (Claude-like readability, warm) */
+  --bg: #121110;
+  --surface: #181614;
+  --surface-2: #1f1c19;
+  --border: rgba(237, 232, 224, 0.10);
+  --text: rgba(237, 232, 224, 0.92);
+  --muted: rgba(237, 232, 224, 0.72);
+  --muted-2: rgba(237, 232, 224, 0.52);
+  --accent: #c96442;
+  --accent-hover: #b95838;
+  --accent-soft: rgba(201, 100, 66, 0.18);
+  --focus-ring: rgba(201, 100, 66, 0.26);
+  --cite-bg: rgba(255, 255, 255, 0.06);
+  --cite-border: rgba(255, 255, 255, 0.12);
+  --shadow: 0 1px 0 rgba(255, 255, 255, 0.03), 0 16px 44px rgba(0, 0, 0, 0.45);
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji",
+    "Segoe UI Emoji";
+  font-size: 17px;
+  line-height: 1.65;
+  font-kerning: normal;
+  font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
+  background: var(--bg);
+  color: var(--text);
+}
+
