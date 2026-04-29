@@ -44,12 +44,13 @@ async function main() {
   nodes.forEach((node, i) => {
     const m = metadata[i];
     console.log(`── Node ${i + 1} (${node.type}, page ${node.page}) ──`);
-    console.log(`  product_model:       ${m.product_model ?? '(null)'}`);
+    console.log(`  crop:                ${m.crop}`);
+    console.log(`  region:              ${m.region}`);
     console.log(`  doc_type:            ${m.doc_type}`);
+    console.log(`  source_year:         ${m.source_year}`);
     console.log(`  section:             ${m.section}`);
-    console.log(`  has_safety_warning:  ${m.has_safety_warning}`);
-    console.log(`  has_torque_spec:     ${m.has_torque_spec}`);
-    console.log(`  lang:                ${m.lang}`);
+    console.log(`  has_spray_advice:    ${m.has_spray_advice}`);
+    console.log(`  has_regulatory_info: ${m.has_regulatory_info}`);
     console.log();
   });
 

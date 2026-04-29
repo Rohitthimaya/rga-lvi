@@ -14,20 +14,23 @@ type StreamState =
   | { phase: 'done'; citations: Citation[]; text: string; queryId: string; traceId: string | null; verified: boolean };
 
 type ChatMessage =
-  | { role: 'user'; text: string }
+  | { role: 'user'; text: string; imagePreviewUrl?: string }
   | { role: 'assistant'; text: string; phase: 'retrieving' | 'streaming' | 'done' };
 
 export default function ChatPage() {
   const [query, setQuery] = useState('');
   const [stream, setStream] = useState<StreamState>({ phase: 'idle' });
   const abortRef = useRef<AbortController | null>(null);
+  const imageInputRef = useRef<HTMLInputElement | null>(null);
   const [selected, setSelected] = useState<{ source: string; page: number; fileId: string } | null>(null);
   const [fileIdBySource, setFileIdBySource] = useState<Record<string, string>>({});
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       role: 'assistant',
       text:
-        "Ask an installation or troubleshooting question. I’ll answer with citations, and you can open the cited PDF on the right.",
+        "Ask a BC crop, pest, disease, soil, irrigation, spray, or program question. I'll answer with citations, and you can open the cited PDF on the right.",
       phase: 'done',
     },
   ]);
@@ -61,23 +64,41 @@ export default function ChatPage() {
 
   async function run() {
     const q = query.trim();
-    if (!q) return;
+    if (!q && !imageFile) return;
 
     abortRef.current?.abort();
     const ac = new AbortController();
     abortRef.current = ac;
 
     setStream({ phase: 'retrieving', citations: [] });
+    const userImagePreview = imagePreviewUrl ?? undefined;
     setMessages((prev) => [
       ...prev,
-      { role: 'user', text: q },
+      { role: 'user', text: q || 'Please review this field photo.', imagePreviewUrl: userImagePreview },
       { role: 'assistant', text: '', phase: 'retrieving' },
     ]);
 
-    const res = await fetch('/ask', {
+    let imageUrl: string | undefined;
+    if (imageFile) {
+      const form = new FormData();
+      form.append('file', imageFile);
+      const uploadRes = await fetch('/api/images', {
+        method: 'POST',
+        body: form,
+        signal: ac.signal,
+      });
+      if (!uploadRes.ok) {
+        const t = await uploadRes.text();
+        throw new Error(t || 'Failed to upload image');
+      }
+      const uploadJson = await uploadRes.json();
+      imageUrl = uploadJson.imageUrl;
+    }
+
+    const res = await fetch('/api/ask', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ query: q }),
+      body: JSON.stringify({ query: q || 'Please review this field photo.', image_url: imageUrl }),
       signal: ac.signal,
     });
 
@@ -157,9 +178,18 @@ export default function ChatPage() {
             return next;
           });
           setQuery('');
+          setImageFile(null);
+          setImagePreviewUrl(null);
+          if (imageInputRef.current) imageInputRef.current.value = '';
         }
       }
     }
+  }
+
+  function onSelectImage(file: File | null) {
+    if (imagePreviewUrl) URL.revokeObjectURL(imagePreviewUrl);
+    setImageFile(file);
+    setImagePreviewUrl(file ? URL.createObjectURL(file) : null);
   }
 
   return (
@@ -171,7 +201,7 @@ export default function ChatPage() {
               <div className="mx-auto max-w-[720px]">
                 <div className="text-sm font-semibold">Chat</div>
                 <div className="mt-1 text-[13px] leading-6 text-[var(--muted)]">
-                  Clear answers with citations. Click a citation to open the PDF on the right.
+                  BC agriculture answers with citations. Click a citation to open the PDF on the right.
                 </div>
               </div>
             </header>
@@ -186,11 +216,46 @@ export default function ChatPage() {
 
             <div className="shrink-0 px-2 pb-5 pt-3">
               <div className="mx-auto max-w-[720px]">
-                <div className="flex items-end gap-3 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-3 shadow-[var(--shadow)]">
+                <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-3 shadow-[var(--shadow)]">
+                  {imagePreviewUrl ? (
+                    <div className="mb-3 flex items-center gap-3 rounded-xl border border-[var(--border)] bg-[var(--surface-2)] p-2">
+                      <img
+                        src={imagePreviewUrl}
+                        alt="Selected field photo preview"
+                        className="h-16 w-16 rounded-lg object-cover"
+                      />
+                      <div className="min-w-0 flex-1 text-sm text-[var(--text)]">
+                        <div className="truncate font-medium">{imageFile?.name}</div>
+                        <div className="text-xs text-[var(--muted)]">Attached field photo</div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => onSelectImage(null)}
+                        className="rounded-lg border border-[var(--border)] px-3 py-2 text-xs text-[var(--text)] hover:bg-[var(--surface)]"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ) : null}
+                  <div className="flex items-end gap-3">
+                  <input
+                    ref={imageInputRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    className="hidden"
+                    onChange={(e) => onSelectImage(e.target.files?.[0] ?? null)}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => imageInputRef.current?.click()}
+                    className="h-[52px] shrink-0 rounded-xl border border-[var(--border)] bg-[var(--surface-2)] px-4 text-[14px] font-semibold text-[var(--text)] transition-colors duration-200 ease-out hover:bg-[var(--surface)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
+                  >
+                    Photo
+                  </button>
                   <textarea
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
-                    placeholder="Ask a technician question…"
+                    placeholder="Ask a BC crop question, optionally with a field photo..."
                     rows={2}
                     className="min-h-[52px] w-full resize-none rounded-xl border border-[var(--border)] bg-[var(--surface-2)] px-4 py-3 text-[15px] leading-6 text-[var(--text)] outline-none placeholder:text-[var(--muted-2)] focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--focus-ring)]"
                     onKeyDown={(e) => {
@@ -202,10 +267,11 @@ export default function ChatPage() {
                   />
                   <button
                     onClick={() => void run()}
-                    className="h-[52px] shrink-0 rounded-xl bg-[var(--accent)] px-5 text-[15px] font-semibold text-[var(--bg)] transition-colors duration-200 ease-out hover:bg-[var(--accent-hover)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
+                    className="h-[52px] shrink-0 rounded-xl bg-[var(--action)] px-5 text-[15px] font-semibold text-white transition-colors duration-200 ease-out hover:bg-[var(--action-hover)] focus:outline-none focus:ring-2 focus:ring-[var(--action-focus-ring)]"
                   >
                     Send
                   </button>
+                  </div>
                 </div>
 
                 {stream.phase === 'done' ? (
@@ -302,14 +368,20 @@ function Message(props: { msg: ChatMessage; onOpenCitation: (source: string, pag
   const isUser = m.role === 'user';
   return (
     <div className={isUser ? 'flex justify-end' : 'flex justify-start'}>
-      <div className={isUser ? 'max-w-[82%] rounded-xl border border-[var(--border)] bg-[var(--surface-2)] px-4 py-3' : 'max-w-none'}>
+      <div
+        className={
+          isUser
+            ? 'max-w-[82%] rounded-xl border border-[var(--accent)] bg-[var(--accent)] px-4 py-3 shadow-[var(--shadow)]'
+            : 'max-w-none rounded-2xl border border-[var(--border)] bg-[var(--bot-message)] px-4 py-3 shadow-[var(--shadow)]'
+        }
+      >
         {m.role === 'assistant' ? (
           <div className="text-[17px] leading-[1.65] text-[var(--text)]">
             {m.phase === 'retrieving' ? (
               <div className="text-[15px] leading-6 text-[var(--muted)]">Retrieving context…</div>
             ) : null}
             {m.text ? (
-              <article className="prose max-w-none prose-headings:scroll-mt-16 prose-headings:tracking-tight prose-h1:mt-9 prose-h1:text-[1.75rem] prose-h1:leading-[1.25] prose-h2:mt-8 prose-h2:text-[1.4rem] prose-h2:leading-[1.28] prose-h3:mt-7 prose-h3:text-[1.15rem] prose-h3:leading-[1.3] prose-p:mt-0 prose-p:mb-[1.15em] prose-ul:mt-0 prose-ul:mb-[1.05em] prose-ol:mt-0 prose-ol:mb-[1.05em] prose-li:my-0 prose-li:mb-[0.55em] prose-li:leading-[1.65] prose-hr:my-8 prose-hr:border-[var(--border)] prose-strong:font-semibold prose-a:text-[var(--accent)] prose-a:underline prose-a:decoration-[rgba(201,100,66,0.35)] prose-a:underline-offset-4 hover:prose-a:decoration-[rgba(201,100,66,0.6)] prose-blockquote:mt-0 prose-blockquote:mb-[1.15em] prose-blockquote:border-l-[3px] prose-blockquote:border-[var(--border)] prose-blockquote:bg-[var(--surface-2)] prose-blockquote:px-4 prose-blockquote:py-3 prose-blockquote:text-[var(--text)] prose-code:rounded prose-code:bg-[var(--surface-2)] prose-code:px-1.5 prose-code:py-0.5 prose-code:text-[0.92em] prose-pre:mt-0 prose-pre:mb-[1.15em] prose-pre:rounded-xl prose-pre:border prose-pre:border-[var(--border)] prose-pre:bg-[var(--surface-2)] prose-pre:px-4 prose-pre:py-3 prose-pre:text-[var(--text)] prose-table:mt-0 prose-table:mb-[1.15em] prose-table:text-[15px] prose-th:border-[var(--border)] prose-th:px-3 prose-th:py-2 prose-td:border-[var(--border)] prose-td:px-3 prose-td:py-2">
+              <article className="prose max-w-none prose-headings:scroll-mt-16 prose-headings:tracking-tight prose-h1:mt-9 prose-h1:text-[1.75rem] prose-h1:leading-[1.25] prose-h2:mt-8 prose-h2:text-[1.4rem] prose-h2:leading-[1.28] prose-h3:mt-7 prose-h3:text-[1.15rem] prose-h3:leading-[1.3] prose-p:mt-0 prose-p:mb-[1.15em] prose-ul:mt-0 prose-ul:mb-[1.05em] prose-ol:mt-0 prose-ol:mb-[1.05em] prose-li:my-0 prose-li:mb-[0.55em] prose-li:leading-[1.65] prose-hr:my-8 prose-hr:border-[var(--border)] prose-strong:font-semibold prose-a:text-[var(--accent)] prose-a:underline prose-a:decoration-[var(--link-decoration)] prose-a:underline-offset-4 hover:prose-a:decoration-[var(--link-decoration-hover)] prose-blockquote:mt-0 prose-blockquote:mb-[1.15em] prose-blockquote:border-l-[3px] prose-blockquote:border-[var(--border)] prose-blockquote:bg-[var(--surface-2)] prose-blockquote:px-4 prose-blockquote:py-3 prose-blockquote:text-[var(--text)] prose-code:rounded prose-code:bg-[var(--surface-2)] prose-code:px-1.5 prose-code:py-0.5 prose-code:text-[0.92em] prose-pre:mt-0 prose-pre:mb-[1.15em] prose-pre:rounded-xl prose-pre:border prose-pre:border-[var(--border)] prose-pre:bg-[var(--surface-2)] prose-pre:px-4 prose-pre:py-3 prose-pre:text-[var(--text)] prose-table:mt-0 prose-table:mb-[1.15em] prose-table:text-[15px] prose-th:border-[var(--border)] prose-th:px-3 prose-th:py-2 prose-td:border-[var(--border)] prose-td:px-3 prose-td:py-2">
                 <ReactMarkdown
                   remarkPlugins={[remarkGfm]}
                   components={{
@@ -344,7 +416,16 @@ function Message(props: { msg: ChatMessage; onOpenCitation: (source: string, pag
             ) : null}
           </div>
         ) : (
-          <div className="whitespace-pre-wrap text-[16px] leading-[1.65] text-[var(--text)]">{m.text}</div>
+          <div className="space-y-3 text-[16px] leading-[1.65] text-[var(--accent-contrast)]">
+            {m.imagePreviewUrl ? (
+              <img
+                src={m.imagePreviewUrl}
+                alt="Uploaded field photo"
+                className="max-h-56 rounded-xl border border-white/20 object-contain"
+              />
+            ) : null}
+            <div className="whitespace-pre-wrap">{m.text}</div>
+          </div>
         )}
       </div>
     </div>

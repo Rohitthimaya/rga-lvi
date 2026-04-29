@@ -49,13 +49,13 @@ export default function DocDetailPage() {
           <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-2)] p-4">
             <div className="text-xs text-[var(--muted)]">Status</div>
             <div className="mt-1 text-sm text-[var(--text)]">{file?.status ?? '—'}</div>
-            <div className="mt-4 text-xs text-[var(--muted)]">Product models</div>
+            <div className="mt-4 text-xs text-[var(--muted)]">Detected crops</div>
             <div className="mt-1 text-sm text-[var(--text)]">{(file?.product_models ?? []).join(', ') || '—'}</div>
             <div className="mt-4 text-xs text-[var(--muted)]">Node count</div>
             <div className="mt-1 text-sm text-[var(--text)]">{nodes?.nodeCount ?? '—'}</div>
           </div>
 
-          <div className="lg:col-span-2 overflow-hidden rounded-xl border border-[var(--border)] bg-white">
+          <div className="lg:col-span-2 overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface)]">
             <div className="bg-[var(--surface-2)] px-4 py-3 text-xs text-[var(--muted)]">Chunks</div>
             <div className="max-h-[70vh] overflow-auto divide-y divide-[var(--border)]">
               {(nodes?.nodes ?? []).map((n: any) => (
@@ -66,14 +66,24 @@ export default function DocDetailPage() {
                     </span>
                     <span className="text-xs text-[var(--muted)]">p{n.page}</span>
                     <span className="text-xs text-[var(--muted)]">{n.section || '—'}</span>
-                    {n.has_safety_warning ? (
-                      <span className="rounded-full border border-amber-900/60 bg-amber-950/30 px-2 py-1 text-xs text-amber-200">
-                        safety
+                    {n.crop ? (
+                      <span className="rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-2 py-1 text-xs text-[var(--text)]">
+                        {n.crop}
                       </span>
                     ) : null}
-                    {n.has_torque_spec ? (
+                    {n.region ? (
+                      <span className="rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-2 py-1 text-xs text-[var(--text)]">
+                        {n.region}
+                      </span>
+                    ) : null}
+                    {n.has_spray_advice ? (
+                      <span className="rounded-full border border-amber-900/60 bg-amber-950/30 px-2 py-1 text-xs text-amber-200">
+                        spray advice
+                      </span>
+                    ) : null}
+                    {n.has_regulatory_info ? (
                       <span className="rounded-full border border-emerald-900/60 bg-emerald-950/30 px-2 py-1 text-xs text-emerald-200">
-                        torque/spec
+                        regulatory
                       </span>
                     ) : null}
                   </div>

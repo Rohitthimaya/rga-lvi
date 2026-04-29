@@ -15,8 +15,9 @@ export interface ParseResult {
 export async function parsePdf(params: {
   buffer: Buffer;
   filename: string;
+  maxPages?: number;
 }): Promise<ParseResult> {
-  const { buffer, filename } = params;
+  const { buffer, filename, maxPages } = params;
 
   // Step 1: Upload file
   const uploadFormData = new FormData();
@@ -27,6 +28,9 @@ export async function parsePdf(params: {
   uploadFormData.append('adaptive_long_table', 'true');
   uploadFormData.append('outlined_table_extraction', 'true');
   uploadFormData.append('output_tables_as_HTML', 'true');
+  if (maxPages) {
+    uploadFormData.append('target_pages', `1-${maxPages}`);
+  }
 
   const uploadResp = await fetch(`${LLAMA_CLOUD_BASE}/upload`, {
     method: 'POST',

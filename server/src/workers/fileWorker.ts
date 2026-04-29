@@ -14,6 +14,12 @@ import { insertVectors, deleteVectorsByFileId, buildVectorInserts } from '../db/
 
 console.log(`File worker starting (env: ${config.NODE_ENV})`);
 
+function limitMarkdownPages(markdown: string, maxPages?: number): string {
+  if (!maxPages) return markdown;
+  const pages = markdown.split(/^---\s*$/m).map((page) => page.trim()).filter(Boolean);
+  return pages.slice(0, maxPages).join('\n\n---\n\n');
+}
+
 const worker = new Worker<FileJobData>(
   FILE_QUEUE_NAME,
   async (job: Job<FileJobData>) => {
@@ -37,10 +43,15 @@ const worker = new Worker<FileJobData>(
 
       // 2. Parse
       console.log(`[${job.id}] Parsing with LlamaParse...`);
-      const { markdown, pageCount } = await parsePdf({
+      const parsed = await parsePdf({
         buffer,
         filename: originalName,
+        maxPages: config.INGEST_MAX_PAGES,
       });
+      const markdown = limitMarkdownPages(parsed.markdown, config.INGEST_MAX_PAGES);
+      const pageCount = config.INGEST_MAX_PAGES
+        ? Math.min(parsed.pageCount, config.INGEST_MAX_PAGES)
+        : parsed.pageCount;
       console.log(`[${job.id}]   ${pageCount} pages, ${markdown.length} chars`);
 
       // 3. Chunk
@@ -88,7 +99,13 @@ const worker = new Worker<FileJobData>(
       // 7. Summarize
       console.log(`[${job.id}] Generating retrieval summaries...`);
       const tSum = Date.now();
-      const summaries = await summarizeNodes(chunks, metadata, originalName);
+      const summaries = await summarizeNodes(
+        chunks,
+        metadata,
+        originalName,
+        config.SUMMARY_CONCURRENCY,
+        config.SUMMARY_DELAY_MS
+      );
       console.log(`[${job.id}]   summaries in ${Date.now() - tSum}ms`);
 
       // 8. Embed

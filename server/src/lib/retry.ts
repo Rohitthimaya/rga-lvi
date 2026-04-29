@@ -25,12 +25,14 @@ export async function retryWithBackoff<T>(
     } catch (err: any) {
       lastErr = err;
 
-      const status = err?.status;
+      const status = err?.status ?? err?.statusCode;
       const code = err?.code;
+      const message = typeof err?.message === 'string' ? err.message : '';
       const isRetryable =
         status === 429 || // rate limit
         status === 529 || // overloaded
         (typeof status === 'number' && status >= 500) || // server errors
+        message.includes('Status code: 429') ||
         code === 'ETIMEDOUT' ||
         code === 'ECONNRESET';
 

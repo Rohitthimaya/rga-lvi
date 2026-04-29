@@ -2,8 +2,8 @@ import './globals.css';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'LVI RAG Admin',
-  description: 'Document ingestion and support assistant',
+  title: 'AICanGrow Bot',
+  description: 'BC farmer advisory assistant grounded in Ministry documents',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

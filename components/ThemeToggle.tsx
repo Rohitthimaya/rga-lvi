@@ -4,7 +4,7 @@
 export function ThemeToggle() {
   return (
     <button
-      className="w-full rounded-xl border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-left text-xs text-[var(--muted)] hover:opacity-90"
+      className="w-full rounded-xl border border-[var(--nav-border)] bg-[var(--nav-hover)] px-3 py-2 text-left text-xs text-[var(--nav-muted)] transition-colors duration-200 ease-out hover:text-[var(--nav-text)]"
       onClick={() => {
         const cur = document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light';
         const next = cur === 'dark' ? 'light' : 'dark';

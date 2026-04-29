@@ -2,44 +2,69 @@
 @import "tailwindcss";
 
 :root {
-  /* Neutrals (paper, no pure white/black) */
-  --bg: #faf9f5;
-  --surface: #f6f4ee;
-  --surface-2: #f0eee6;
-  --border: rgba(47, 43, 38, 0.14);
-  --text: #1e1b16;
-  --muted: rgba(30, 27, 22, 0.68);
-  --muted-2: rgba(30, 27, 22, 0.46);
+  /* AICanGrow agricultural palette */
+  --bg: #fbfdf8;
+  --surface: #ffffff;
+  --surface-2: #f4f8f0;
+  --bot-message: #f4f8f0;
+  --border: rgba(55, 86, 39, 0.16);
+  --text: #1f2a1a;
+  --muted: rgba(31, 42, 26, 0.68);
+  --muted-2: rgba(31, 42, 26, 0.46);
 
-  /* Single accent (interactive only) */
-  --accent: #c96442;
-  --accent-hover: #b95838;
-  --accent-soft: rgba(201, 100, 66, 0.14);
-  --focus-ring: rgba(201, 100, 66, 0.22);
+  /* Brand trio: leaf green, soft sage, harvest orange */
+  --accent: #6a9f3e;
+  --accent-hover: #5b8f35;
+  --accent-soft: rgba(106, 159, 62, 0.14);
+  --accent-contrast: #ffffff;
+  --action: #f7941d;
+  --action-hover: #df7f08;
+  --action-soft: rgba(247, 148, 29, 0.16);
+  --focus-ring: rgba(106, 159, 62, 0.24);
+  --action-focus-ring: rgba(247, 148, 29, 0.28);
+  --link-decoration: rgba(106, 159, 62, 0.35);
+  --link-decoration-hover: rgba(106, 159, 62, 0.6);
+  --nav-bg: #1f2a1a;
+  --nav-border: rgba(244, 248, 240, 0.16);
+  --nav-text: rgba(244, 248, 240, 0.92);
+  --nav-muted: rgba(244, 248, 240, 0.66);
+  --nav-hover: rgba(106, 159, 62, 0.18);
 
   /* Citations (readable, not accent) */
-  --cite-bg: rgba(47, 43, 38, 0.06);
-  --cite-border: rgba(47, 43, 38, 0.12);
+  --cite-bg: rgba(106, 159, 62, 0.10);
+  --cite-border: rgba(106, 159, 62, 0.22);
 
   /* Shadow (very subtle) */
-  --shadow: 0 1px 0 rgba(30, 27, 22, 0.04), 0 16px 42px rgba(30, 27, 22, 0.07);
+  --shadow: 0 1px 0 rgba(31, 42, 26, 0.04), 0 16px 42px rgba(31, 42, 26, 0.08);
 }
 
 [data-theme="dark"] {
-  /* Dark paper (Claude-like readability, warm) */
-  --bg: #121110;
-  --surface: #181614;
-  --surface-2: #1f1c19;
-  --border: rgba(237, 232, 224, 0.10);
-  --text: rgba(237, 232, 224, 0.92);
-  --muted: rgba(237, 232, 224, 0.72);
-  --muted-2: rgba(237, 232, 224, 0.52);
-  --accent: #c96442;
-  --accent-hover: #b95838;
-  --accent-soft: rgba(201, 100, 66, 0.18);
-  --focus-ring: rgba(201, 100, 66, 0.26);
-  --cite-bg: rgba(255, 255, 255, 0.06);
-  --cite-border: rgba(255, 255, 255, 0.12);
+  --bg: #10150d;
+  --surface: #161d12;
+  --surface-2: #1c2916;
+  --bot-message: #1c2916;
+  --border: rgba(244, 248, 240, 0.12);
+  --text: rgba(244, 248, 240, 0.92);
+  --muted: rgba(244, 248, 240, 0.72);
+  --muted-2: rgba(244, 248, 240, 0.52);
+  --accent: #7fb454;
+  --accent-hover: #8dc465;
+  --accent-soft: rgba(106, 159, 62, 0.20);
+  --accent-contrast: #10150d;
+  --action: #f7941d;
+  --action-hover: #ffad42;
+  --action-soft: rgba(247, 148, 29, 0.20);
+  --focus-ring: rgba(127, 180, 84, 0.30);
+  --action-focus-ring: rgba(247, 148, 29, 0.32);
+  --link-decoration: rgba(127, 180, 84, 0.40);
+  --link-decoration-hover: rgba(127, 180, 84, 0.68);
+  --nav-bg: #0f170b;
+  --nav-border: rgba(244, 248, 240, 0.12);
+  --nav-text: rgba(244, 248, 240, 0.92);
+  --nav-muted: rgba(244, 248, 240, 0.66);
+  --nav-hover: rgba(127, 180, 84, 0.18);
+  --cite-bg: rgba(127, 180, 84, 0.12);
+  --cite-border: rgba(127, 180, 84, 0.24);
   --shadow: 0 1px 0 rgba(255, 255, 255, 0.03), 0 16px 44px rgba(0, 0, 0, 0.45);
 }
 

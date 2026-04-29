@@ -38,8 +38,8 @@ export async function verifyAnswer(params: {
 Check that:
 - The answer uses ONLY the provided context.
 - Every factual claim has an inline citation like [filename, page X].
-- If electrical safety/grounding/lifting loads are involved, the exact safety warnings from context are included verbatim.
-- No hallucinated numbers, part numbers, torque specs, drill bit sizes, or LED meanings.
+- If spray or pesticide advice is involved, the answer includes the Health Canada Pesticide Label database disclaimer.
+- No hallucinated pesticide names, rates, pre-harvest intervals, registration status, program rules, or regulatory requirements.
 
 Always call the tool.`;
 

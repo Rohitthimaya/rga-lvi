@@ -11,6 +11,7 @@ import searchRouter from './routes/search';
 import askRouter from './routes/ask';
 import feedbackRouter from './routes/feedback';
 import queriesRouter from './routes/queries';
+import notesRouter from './routes/notes';
 
 const app = express();
 
@@ -23,7 +24,7 @@ app.use(express.json());
 app.get('/health', async (_req: Request, res: Response) => {
   const health: Record<string, any> = {
     status: 'ok',
-    service: 'r2lvi-rag',
+    service: 'aicangrow-rag',
     timestamp: new Date().toISOString(),
   };
 
@@ -63,6 +64,13 @@ app.use('/', searchRouter);
 app.use('/', askRouter);
 app.use('/', feedbackRouter);
 app.use('/', queriesRouter);
+app.use('/', notesRouter);
+app.use('/api', uploadRouter);
+app.use('/api', searchRouter);
+app.use('/api', askRouter);
+app.use('/api', feedbackRouter);
+app.use('/api', queriesRouter);
+app.use('/api', notesRouter);
 
 app.listen(config.PORT, () => {
   console.log(`Server running on http://localhost:${config.PORT} (${config.NODE_ENV})`);

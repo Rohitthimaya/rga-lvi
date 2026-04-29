@@ -36,7 +36,7 @@ export default function QueriesPage() {
           </div>
         ) : null}
 
-        <div className="mt-6 overflow-auto rounded-xl border border-[var(--border)] bg-white">
+        <div className="mt-6 overflow-auto rounded-xl border border-[var(--border)] bg-[var(--surface)]">
           <table className="min-w-full text-left text-sm">
             <thead className="bg-[var(--surface-2)] text-xs text-[var(--muted)]">
               <tr>

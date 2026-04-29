@@ -1,7 +1,7 @@
 services:
   redis:
     image: redis:7-alpine
-    container_name: r2lvi-redis
+    container_name: aicangrow-redis
     ports:
       - "6379:6379"
     volumes:

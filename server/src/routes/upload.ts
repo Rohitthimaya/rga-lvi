@@ -24,6 +24,20 @@ const upload = multer({
   },
 });
 
+const imageUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 8 * 1024 * 1024,
+  },
+  fileFilter: (_req, file, cb) => {
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.mimetype)) {
+      cb(new Error('Only JPEG, PNG, and WebP images are allowed'));
+      return;
+    }
+    cb(null, true);
+  },
+});
+
 
 // GET /files/:id/nodes — inspect the chunks for a file
 router.get('/files/:id/nodes', async (req: Request, res: Response) => {
@@ -44,6 +58,12 @@ router.get('/files/:id/nodes', async (req: Request, res: Response) => {
         section: n.section,
         product_model: n.product_model,
         doc_type: n.doc_type,
+        crop: n.crop,
+        region: n.region,
+        source_year: n.source_year,
+        has_spray_advice: n.has_spray_advice,
+        has_regulatory_info: n.has_regulatory_info,
+        corpus_version: n.corpus_version,
         has_safety_warning: n.has_safety_warning,
         has_torque_spec: n.has_torque_spec,
         figure_refs: n.figure_refs,
@@ -110,6 +130,38 @@ router.post('/upload', upload.single('file'), async (req: Request, res: Response
     console.error('Upload failed:', err);
     const message = err instanceof Error ? err.message : 'Unknown error';
     res.status(500).json({ error: 'Upload failed', details: message });
+  }
+});
+
+// POST /images — upload a farmer field photo for multimodal chat
+router.post('/images', imageUpload.single('file'), async (req: Request, res: Response) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No image uploaded. Use form field "file".' });
+    }
+
+    const { buffer, originalname, mimetype, size } = req.file;
+    const id = randomUUID();
+    const sanitizedName = path.basename(originalname).replace(/[^a-zA-Z0-9._-]/g, '_');
+    const storageKey = `farmer-images/${id}-${sanitizedName}`;
+
+    const { url } = await uploadToS3({
+      key: storageKey,
+      body: buffer,
+      contentType: mimetype,
+    });
+
+    res.status(201).json({
+      imageUrl: url,
+      storageKey,
+      originalName: originalname,
+      mimeType: mimetype,
+      sizeBytes: size,
+    });
+  } catch (err) {
+    console.error('Image upload failed:', err);
+    const message = err instanceof Error ? err.message : 'Unknown error';
+    res.status(500).json({ error: 'Image upload failed', details: message });
   }
 });
 

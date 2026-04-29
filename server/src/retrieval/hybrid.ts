@@ -4,6 +4,8 @@ import { embedQuery } from '../ingestion/embedder';
 export type HybridSearchFilters = Partial<{
   product_model: string;
   doc_type: string;
+  crop: string;
+  region: string;
   lang: string;
   type: string;
   source: string;
@@ -17,6 +19,8 @@ export type HybridSearchResult = {
   type: string;
   product_model: string | null;
   doc_type: string | null;
+  crop: string | null;
+  region: string | null;
   lang: string;
   rrf_score: number;
   dense_rank: number | null;
@@ -29,11 +33,13 @@ type CandidateRow = Omit<HybridSearchResult, 'rrf_score' | 'dense_rank' | 'bm25_
 
 function buildFilterWhereClause(
   filters: HybridSearchFilters | undefined,
-  startParamIndex: number
+  startParamIndex: number,
+  tableAlias = ''
 ): { sql: string; params: any[] } {
   const params: any[] = [];
   const clauses: string[] = [];
   let idx = startParamIndex;
+  const col = (name: string) => (tableAlias ? `${tableAlias}.${name}` : name);
 
   const add = (col: string, value: unknown) => {
     if (typeof value !== 'string' || value.trim() === '') return;
@@ -41,11 +47,17 @@ function buildFilterWhereClause(
     clauses.push(`${col} = $${idx++}`);
   };
 
-  add('product_model', filters?.product_model);
-  add('doc_type', filters?.doc_type);
-  add('lang', filters?.lang);
-  add('type', filters?.type);
-  add('source', filters?.source);
+  add(col('product_model'), filters?.product_model);
+  add(col('doc_type'), filters?.doc_type);
+  add(col('crop'), filters?.crop);
+  if (typeof filters?.region === 'string' && filters.region.trim() !== '') {
+    params.push(filters.region.trim());
+    clauses.push(`(${col('region')} = $${idx} OR ${col('region')} = 'all')`);
+    idx++;
+  }
+  add(col('lang'), filters?.lang);
+  add(col('type'), filters?.type);
+  add(col('source'), filters?.source);
 
   return { sql: clauses.length ? ` AND ${clauses.join(' AND ')}` : '', params };
 }
@@ -62,15 +74,19 @@ export async function hybridSearch(
   const candidatesPerMode = opts.candidatesPerMode ?? 50;
   const rrfK = opts.rrfK ?? 60;
 
-  const denseWhere = buildFilterWhereClause(filters, 2);
-  const bm25Where = buildFilterWhereClause(filters, 2);
+  const denseWhere = buildFilterWhereClause(filters, 2, 'v');
+  const bm25Where = buildFilterWhereClause(filters, 2, 'v');
 
   const denseSql = `
     SELECT
-      node_id, summary, source, page, type, product_model, doc_type, lang
-    FROM vectors
+      v.node_id, v.summary, v.source, v.page, v.type, v.product_model, v.doc_type, v.crop, v.region, v.lang
+    FROM vectors v
     WHERE 1=1
       ${denseWhere.sql}
+      AND EXISTS (
+        SELECT 1 FROM corpus_registry cr
+        WHERE cr.crop = v.crop AND cr.status = 'active'
+      )
     ORDER BY embedding <=> $1::vector
     LIMIT $${denseWhere.params.length + 2}
   `;
@@ -96,11 +112,15 @@ export async function hybridSearch(
         ) AS anchor_tsq
     )
     SELECT
-      v.node_id, v.summary, v.source, v.page, v.type, v.product_model, v.doc_type, v.lang,
+      v.node_id, v.summary, v.source, v.page, v.type, v.product_model, v.doc_type, v.crop, v.region, v.lang,
       (q.strict_tsq IS NOT NULL AND v.search_vector @@ q.strict_tsq) AS is_strict
     FROM vectors v, q
     WHERE 1=1
       ${bm25Where.sql}
+      AND EXISTS (
+        SELECT 1 FROM corpus_registry cr
+        WHERE cr.crop = v.crop AND cr.status = 'active'
+      )
       AND q.any_tsq IS NOT NULL
       AND (
         (q.strict_tsq IS NOT NULL AND v.search_vector @@ q.strict_tsq)
@@ -161,6 +181,8 @@ export async function hybridSearch(
         type: row.type,
         product_model: row.product_model ?? null,
         doc_type: row.doc_type ?? null,
+        crop: row.crop ?? null,
+        region: row.region ?? null,
         lang: row.lang,
         rrf_score: 0,
         dense_rank: null,

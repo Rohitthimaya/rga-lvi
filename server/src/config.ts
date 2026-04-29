@@ -35,11 +35,24 @@ const ConfigSchema = z.object({
   VOYAGE_API_KEY: z.string(),
   COHERE_API_KEY: z.string().optional(),
   LLAMA_CLOUD_API_KEY: z.string(),
+  GEMINI_API_KEY: z.string().optional(),
+  GEMINI_SUMMARY_MODEL: z.string().default('gemini-2.5-flash'),
 
   // Langfuse (optional observability)
   LANGFUSE_PUBLIC_KEY: z.string().optional(),
   LANGFUSE_SECRET_KEY: z.string().optional(),
   LANGFUSE_BASE_URL: z.string().url().optional(),
+
+  // Ingestion throttles for free-tier/local indexing.
+  INGEST_MAX_PAGES: z.coerce.number().int().positive().optional(),
+  SUMMARY_MODE: z.enum(['anthropic', 'gemini', 'fallback']).default('anthropic'),
+  SUMMARY_CONCURRENCY: z.coerce.number().int().positive().default(3),
+  SUMMARY_DELAY_MS: z.coerce.number().int().nonnegative().default(0),
+  SUMMARY_MAX_ATTEMPTS: z.coerce.number().int().positive().default(8),
+  SUMMARY_RETRY_MAX_DELAY_MS: z.coerce.number().int().positive().default(65000),
+  VOYAGE_EMBED_BATCH_SIZE: z.coerce.number().int().positive().default(128),
+  VOYAGE_EMBED_DELAY_MS: z.coerce.number().int().nonnegative().default(0),
+  VOYAGE_EMBED_MAX_ATTEMPTS: z.coerce.number().int().positive().default(8),
 });
 
 function loadConfig() {

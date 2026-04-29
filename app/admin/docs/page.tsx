@@ -35,7 +35,7 @@ export default function DocsPage() {
           </div>
           <Link
             href="/admin/upload"
-            className="rounded-xl border border-[var(--border)] bg-[var(--surface-2)] px-4 py-2 text-sm hover:bg-white"
+            className="rounded-xl bg-[var(--action)] px-4 py-2 text-sm font-semibold text-white transition-colors duration-200 ease-out hover:bg-[var(--action-hover)]"
           >
             Upload
           </Link>
@@ -47,13 +47,13 @@ export default function DocsPage() {
           </div>
         ) : null}
 
-        <div className="mt-6 overflow-auto rounded-xl border border-[var(--border)] bg-white">
+        <div className="mt-6 overflow-auto rounded-xl border border-[var(--border)] bg-[var(--surface)]">
           <table className="min-w-full text-left text-sm">
             <thead className="bg-[var(--surface-2)] text-xs text-[var(--muted)]">
               <tr>
                 <th className="px-4 py-3">File</th>
                 <th className="px-4 py-3">Status</th>
-                <th className="px-4 py-3">Models</th>
+                <th className="px-4 py-3">Crops</th>
                 <th className="px-4 py-3">Created</th>
               </tr>
             </thead>

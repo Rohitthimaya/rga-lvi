@@ -10,6 +10,8 @@ export interface VectorInsert {
   type: string;
   product_model: string | null;
   doc_type: string | null;
+  crop: string | null;
+  region: string | null;
   lang: string;
 }
 
@@ -24,7 +26,7 @@ export async function insertVectors(items: VectorInsert[]): Promise<number> {
   const placeholders: string[] = [];
 
   items.forEach((item, i) => {
-    const base = i * 9;
+    const base = i * 11;
     // Format vector as pgvector literal: '[0.1,0.2,...]'
     const vectorLiteral = `[${item.embedding.join(',')}]`;
     placeholders.push(
@@ -40,12 +42,13 @@ export async function insertVectors(items: VectorInsert[]): Promise<number> {
   placeholders.length = 0;
 
   items.forEach((item, i) => {
-    const base = i * 9;
+    const base = i * 11;
     const vectorLiteral = `[${item.embedding.join(',')}]`;
     placeholders.push(
       `($${base + 1}, $${base + 2}, $${base + 3}::vector, ` +
         `$${base + 4}, $${base + 5}, $${base + 6}, ` +
         `$${base + 7}, $${base + 8}, $${base + 9}, ` +
+        `$${base + 10}, $${base + 11}, ` +
         `to_tsvector('english', $${base + 2}))`
     );
     values.push(
@@ -57,7 +60,9 @@ export async function insertVectors(items: VectorInsert[]): Promise<number> {
       item.type,         // $6
       item.product_model,// $7
       item.doc_type,     // $8
-      item.lang          // $9
+      item.crop,         // $9
+      item.region,       // $10
+      item.lang          // $11
     );
   });
 
@@ -65,7 +70,7 @@ export async function insertVectors(items: VectorInsert[]): Promise<number> {
     INSERT INTO vectors (
       node_id, summary, embedding,
       source, page, type,
-      product_model, doc_type, lang,
+      product_model, doc_type, crop, region, lang,
       search_vector
     )
     VALUES ${placeholders.join(', ')}
@@ -109,6 +114,8 @@ export function buildVectorInserts(
     type: node.type,
     product_model: node.product_model,
     doc_type: node.doc_type,
+    crop: node.crop,
+    region: node.region,
     lang: node.lang,
   }));
 }

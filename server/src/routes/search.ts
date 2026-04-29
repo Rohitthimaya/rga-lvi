@@ -14,6 +14,8 @@ const BodySchema = z.object({
     .object({
       product_model: z.string().min(1).optional(),
       doc_type: z.string().min(1).optional(),
+      crop: z.string().min(1).optional(),
+      region: z.string().min(1).optional(),
       lang: z.string().min(1).optional(),
       type: z.string().min(1).optional(),
       source: z.string().min(1).optional(),
